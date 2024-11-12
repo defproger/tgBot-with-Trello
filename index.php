@@ -31,7 +31,7 @@ $bot->text('/start', function (Bot $b) use ($chat, $user) {
     $b->Message("Доброго времени суток [{$b->user->first_name} {$b->user->last_name}](tg://user?id={$b->user->id})\!", "MarkdownV2")->Send();
 });
 
-$bot->text('/addTrello', function (Bot $b) use ($chat, $user) {
+$bot->text('/addTrello', function (Bot $b) use ($chat, $user, $_CONFIG) {
     if (empty($user)) {
         exit();
     }
@@ -55,5 +55,10 @@ $bot->text('/addTrello', function (Bot $b) use ($chat, $user) {
             Msg::Row($markup)
         ))
         ->Send();
+});
+
+$bot->grepData('/^addTrello_(?P<itemId>\d+)_(?P<chatId>\d+)_(?P<userId>\d+)$/', function (Bot $b, $data) use ($chat, $user) {
+    query("update usersInChats set trello_id = {$data['itemId']} where uid={$data['userId']} and chat={$data['chatId']}");
+    $b->Message("Вы добавлены в Trello")->Send();
 });
 
