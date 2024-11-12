@@ -83,6 +83,31 @@ class Trello
         return [];
     }
 
+    public function getMembers()
+    {
+        $url = "{$this->baseUrl}/boards/{$this->boardId}/members";
+        $data = [
+            'key' => $this->apiKey,
+            'token' => $this->token
+        ];
+
+        $response = $this->makeRequest('GET', $url, $data);
+
+        if (is_array($response)) {
+            $members = [];
+            foreach ($response as $member) {
+                $members[] = [
+                    'id' => $member['id'],
+                    'username' => $member['username'],
+                    'fullName' => $member['fullName']
+                ];
+            }
+            return $members;
+        }
+
+        return false;
+    }
+
     private function makeRequest($method, $url, $data = [])
     {
         $ch = curl_init();
