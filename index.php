@@ -64,3 +64,67 @@ $bot->grepData('/^addTrello_(?P<itemId>\w+)_(?P<userId>\d+)$/', function (Bot $b
     $b->Message("Вы добавлены в Trello")->Send();
 });
 
+$bot->text('/report', function (Bot $b) use ($chat, $user, $_CONFIG) {
+    if (empty($user)) {
+        exit();
+    }
+
+    $trello = new Trello($_CONFIG['trelloKey'], $_CONFIG['trelloSecret'], $_CONFIG['boardId']);
+
+
+    $lists = $trello->getLists();
+    if (empty($lists)) {
+        $b->Message('Нет списков')->Send();
+        exit();
+    }
+
+    $inProgressListId = array_search('inProgress', array_column($lists, 'name'));
+    if (!$inProgressListId) {
+        $b->Message('Колонка inProgress не найдена')->Send();
+        exit();
+    }
+
+    $cards = $trello->getCards($inProgressListId);
+
+    if (empty($cards)) {
+        $b->Message('Нет задач в колонке inProgress')->Send();
+        exit();
+    }
+
+    $users = query("select * from usersInChats where chat = {$chat['id']} and trello_id is not null");
+
+    $report = array_filter(array_map(function ($user) use ($cards) {
+        $userCards = array_filter($cards, function ($card) use ($user) {
+            return isset($card['idMembers']) && in_array($user['trello_id'], $card['idMembers']);
+        });
+        return !empty($userCards) ? [$user['id'] => array_column($userCards, 'name')] : null;
+    }, $users));
+
+    if (empty($report)) {
+        $b->Message('У телеграм пользователей нет задач в колонке inProgress')->Send();
+        return;
+    }
+
+    $reportText = "*Отчёт по задачам в колонке inProgress:*\n\n";
+
+    foreach ($report as $userId => $tasks) {
+        $userName = $users[$userId]['name'];
+        $userLink = "[{$userName}](tg://user?id={$userId})";
+
+        $reportText .= "{$userLink} - " . count($tasks) . " задач(и)\n";
+    }
+
+    $reportText .= "\n\n*Детальная информация:*\n";
+    foreach ($report as $userId => $tasks) {
+        $userName = $users[$userId]['name'];
+        $userLink = "[{$userName}](tg://user?id={$userId})";
+
+        $reportText .= "\n{$userLink}:\n";
+        foreach ($tasks as $task) {
+            $reportText .= "• {$task}\n";
+        }
+        $reportText .= "--------------------\n";
+    }
+
+    $b->Message($reportText, "Markdown")->Send();
+});

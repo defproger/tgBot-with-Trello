@@ -27,6 +27,18 @@ class Trello
         return $this->makeRequest('POST', $url, $data);
     }
 
+    public function getLists()
+    {
+        $url = "{$this->baseUrl}/boards/{$this->boardId}/lists";
+
+        $data = [
+            'key' => $this->apiKey,
+            'token' => $this->token
+        ];
+
+        return $this->makeRequest('GET', $url, $data);
+    }
+
     public function getCards($listId)
     {
         $url = "{$this->baseUrl}/lists/{$listId}/cards";
