@@ -58,7 +58,7 @@ require_once 'Msg.php';
             $this->inputMessage = $this->update['message']['text'];
 
         } elseif ($this->update['callback_query']['data']) {
-            $this->chatId = $this->update['callback_query']['chat']['id'];
+            $this->chatId = $this->update['callback_query']['message']['chat']['id'];
             $this->userId = $this->update['callback_query']['from']['id'];
             $this->user = new \stdClass();
             $this->user->id = $this->update['callback_query']['from']['id'];

@@ -12,7 +12,7 @@ $bot->startLog();
 if (!$bot->isGroup() || $bot->isBot()) exit();
 $chat = db_getById("chats", $bot->chatId, 'chat_id');
 if (!empty($chat)) {
-    $user = query("select * from usersInChats where uid={$bot->user->id} and chat={$chat['id']}");
+    $user = query("select * from usersInChats where uid={$bot->user->id} and chat={$chat['id']}")[0];
 } else {
     db_insert("chats", [
         'chat_id' => $bot->chatId,
@@ -35,6 +35,7 @@ $bot->text('/addTrello', function (Bot $b) use ($chat, $user, $_CONFIG) {
     if (empty($user)) {
         exit();
     }
+    $b->log('user', $user);
 
     $trello = new Trello($_CONFIG['trelloKey'], $_CONFIG['trelloSecret'], $_CONFIG['boardId']);
     $list = $trello->getMembers();
@@ -47,7 +48,7 @@ $bot->text('/addTrello', function (Bot $b) use ($chat, $user, $_CONFIG) {
     $markup = [];
 
     foreach ($list as $item) {
-        $markup[] = Msg::dataBtn($item['fullName'], "addTrello_{$item['id']}_{$chat['id']}_{$user['id']}");
+        $markup[] = Msg::dataBtn($item['fullName'], "addTrello_{$item['id']}_{$user['id']}");
     }
 
     $b->Message("Выберите себя")
@@ -57,8 +58,10 @@ $bot->text('/addTrello', function (Bot $b) use ($chat, $user, $_CONFIG) {
         ->Send();
 });
 
-$bot->grepData('/^addTrello_(?P<itemId>\d+)_(?P<chatId>\d+)_(?P<userId>\d+)$/', function (Bot $b, $data) use ($chat, $user) {
-    query("update usersInChats set trello_id = {$data['itemId']} where uid={$data['userId']} and chat={$data['chatId']}");
+$bot->grepData('/^addTrello_(?P<itemId>\w+)_(?P<userId>\d+)$/', function (Bot $b, $data) use ($chat, $user) {
+    db_update("usersInChats", $data['userId'], [
+        'trello_id' => $data['itemId'],
+    ]);
     $b->Message("Вы добавлены в Trello")->Send();
 });
 
