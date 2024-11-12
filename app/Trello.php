@@ -55,21 +55,22 @@ class Trello
 
     public function checkWebhook($payload)
     {
-        $action = $payload['action'];
-        if ($action['type'] === 'updateCard') {
-            $cardName = $action['data']['card']['name'];
-            $fromList = $action['data']['listBefore']['name'];
-            $toList = $action['data']['listAfter']['name'];
+        if (isset($payload['action']) && $payload['action']['type'] === 'updateCard') {
+            $action = $payload['action'];
+
+            $cardName = $action['data']['card']['name'] ?? null;
+            $fromList = $action['data']['listBefore']['name'] ?? null;
+            $toList = $action['data']['listAfter']['name'] ?? null;
+
+            if (!$cardName || !$fromList || !$toList) {
+                return false;
+            }
 
             if ($fromList === 'todo' || $toList === 'todo') {
                 return false;
             }
 
-            return [
-                'cardName' => $cardName,
-                'fromList' => $fromList,
-                'toList' => $toList
-            ];
+            return [$cardName, $fromList, $toList];
         }
         return false;
     }

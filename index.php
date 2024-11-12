@@ -35,7 +35,6 @@ $bot->text('/addTrello', function (Bot $b) use ($chat, $user, $_CONFIG) {
     if (empty($user)) {
         exit();
     }
-    $b->log('user', $user);
 
     $trello = new Trello($_CONFIG['trelloKey'], $_CONFIG['trelloSecret'], $_CONFIG['boardId']);
     $list = $trello->getMembers();

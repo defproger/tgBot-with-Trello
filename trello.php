@@ -10,21 +10,17 @@ $bot->startLog();
 $bot->goingChecker = true;
 
 $trello = new Trello($_CONFIG['trelloKey'], $_CONFIG['trelloSecret'], $_CONFIG['boardId']);
-print_r($trello->createWebhook("https://test123777.theweb.place/trello.php"));
+//print_r($trello->createWebhook("https://test123777.theweb.place/trello.php"));
 
-
-$bot->log('trello', file_get_contents('php://input'));
-$bot->log('trello', $_POST);
-$bot->log('trello', $_GET);
-$bot->log('trello', $_REQUEST);
 $data = json_decode(file_get_contents('php://input'), true);
-
-
-$bot->log('trello', $data);
 
 if (!empty($data)) {
     [$cardName, $from, $to] = $trello->checkWebhook($data);
-    $bot->log('trello', "$cardName | $from | $to");
-} else {
-    $bot->log('trello', 'Empty payload received');
+    if (!empty($cardName) && !empty($from) && !empty($to)) {
+        $bot->log('trello', "$cardName | $from | $to");
+        $chats = db_getAll("chats");
+        foreach ($chats as $chat) {
+            $bot->toChat($chat['chat_id'])->Message("Карточка $cardName перемещена из списка $from в список $to")->Send();
+        }
+    }
 }
