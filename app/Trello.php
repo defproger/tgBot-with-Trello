@@ -38,6 +38,21 @@ class Trello
         return $this->makeRequest('GET', $url, $data);
     }
 
+
+    public function createWebhook($callbackUrl)
+    {
+        $url = "{$this->baseUrl}/webhooks?key=$this->apiKey&token=$this->token";
+
+        $data = [
+            'description' => 'Webhook for Trello board',
+            'callbackURL' => $callbackUrl,
+            'idModel' => $this->boardId
+        ];
+
+        return $this->makeRequest('POST', $url, $data);
+    }
+
+
     public function checkWebhook($payload)
     {
         $action = $payload['action'];

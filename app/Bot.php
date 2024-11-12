@@ -22,7 +22,7 @@ require_once 'Msg.php';
     protected $logging = false;
     //deleted
     public $toChatId = null;
-    protected $goingChecker = null;
+    public $goingChecker = null;
     protected $fromFunctionChecker = null;
     protected $text = null;
     protected $video = null;
