@@ -18,7 +18,8 @@ if (!empty($chat)) {
     ]);
     $chat = db_lastId();
 }
-$bot->newMember(function (Bot $b) use ($chat, $user) {
+
+$bot->text('/start', function (Bot $b) use ($chat, $user) {
     if (empty($user)) {
         db_insert("usersInChats", [
             'uid' => $b->user->id,
@@ -26,8 +27,5 @@ $bot->newMember(function (Bot $b) use ($chat, $user) {
             'name' => $b->user->first_name . " " . $b->user->last_name,
         ]);
     }
-    $b->Message('Приветствую в этом чудном чате! Уже выполнил свои задачи в трелло?')->Send();
+    $b->Message("Доброго времени суток [{$b->user->first_name} {$b->user->last_name}](tg://user?id={$b->user->id})\!", "MarkdownV2")->Send();
 });
-
-
-$bot->text('/start')->Message("Доброго времени суток [{$bot->user->first_name} {$bot->user->last_name}](tg://user?id={$bot->user->id})!", "MarkdownV2")->Send();

@@ -48,7 +48,7 @@ require_once 'Msg.php';
         if ($this->update['message']) {
             $this->chatId = $this->update['message']['chat']['id'];
             $this->userId = $this->update['message']['from']['id'];
-            $this->user = new stdClass();
+            $this->user = new \stdClass();
             $this->user->id = $this->update['message']['from']['id'];
             $this->user->username = $this->update['message']['from']['username'];
             $this->user->first_name = $this->update['message']['from']['first_name'];
@@ -60,7 +60,7 @@ require_once 'Msg.php';
         } elseif ($this->update['callback_query']['data']) {
             $this->chatId = $this->update['callback_query']['chat']['id'];
             $this->userId = $this->update['callback_query']['from']['id'];
-            $this->user = new stdClass();
+            $this->user = new \stdClass();
             $this->user->id = $this->update['callback_query']['from']['id'];
             $this->user->username = $this->update['callback_query']['from']['username'];
             $this->user->first_name = $this->update['callback_query']['from']['first_name'];
@@ -72,7 +72,7 @@ require_once 'Msg.php';
         if ($this->update['message']['contact'])
             $this->contact = $this->update['message']['contact']['phone_number'];
         if ($this->update['message']['new_chat_members'] || $this->update['message']['left_chat_member']) {
-            $this->member = new stdClass();
+            $this->member = new \stdClass();
             $this->member->id = $this->update['message']['new_chat_member']['id'];
             $this->member->first_name = $this->update['message']['new_chat_member']['first_name'];
             $this->member->last_name = $this->update['message']['new_chat_member']['last_name'];
