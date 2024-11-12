@@ -71,7 +71,6 @@ $bot->text('/report', function (Bot $b) use ($chat, $user, $_CONFIG) {
 
     $trello = new Trello($_CONFIG['trelloKey'], $_CONFIG['trelloSecret'], $_CONFIG['boardId']);
 
-
     $lists = $trello->getLists();
     if (empty($lists)) {
         $b->Message('Нет списков')->Send();
@@ -85,7 +84,6 @@ $bot->text('/report', function (Bot $b) use ($chat, $user, $_CONFIG) {
     }
 
     $cards = $trello->getCards($inProgressList['id']);
-
     if (empty($cards)) {
         $b->Message('Нет задач в колонке inProgress')->Send();
         exit();
@@ -93,39 +91,34 @@ $bot->text('/report', function (Bot $b) use ($chat, $user, $_CONFIG) {
 
     $users = query("select * from usersInChats where chat = {$chat['id']} and trello_id is not null");
 
-    $report = array_map(function ($user) use ($cards) {
+    $report = [];
+    foreach ($users as $user) {
         $userCards = array_filter($cards, function ($card) use ($user) {
             return isset($card['idMembers']) && in_array($user['trello_id'], $card['idMembers']);
         });
 
-        return [$user['id'] => $userCards];
-    }, $users);
-
-    $report = array_merge(...$report);
+        $report[$user['id']] = array_column($userCards, 'name');
+    }
 
     $reportText = "*Отчёт по задачам в колонке inProgress:*\n\n";
 
     foreach ($users as $user) {
-        $userId = $user['id'];
-        $userName = $user['name'];
-        $userLink = "[{$userName}](tg://user?id={$userId})";
+        $userLink = "[{$user['name']}](tg://user?id={$user['uid']})";
 
-        $taskCount = isset($report[$userId]) ? count($report[$userId]) : 0;
+        $taskCount = isset($report[$user['id']]) ? count($report[$user['id']]) : 0;
         $reportText .= "{$userLink} - {$taskCount} задач(и)\n";
     }
 
     $reportText .= "\n\n*Детальная информация:*\n";
 
     foreach ($users as $user) {
-        $userId = $user['id'];
-        $userName = $user['name'];
-        $userLink = "[{$userName}](tg://user?id={$userId})";
+        $userLink = "[{$user['name']}](tg://user?id={$user['uid']})";
 
         $reportText .= "\n{$userLink}:\n";
 
-        if (isset($report[$userId]) && !empty($report[$userId])) {
-            foreach ($report[$userId] as $task) {
-                $reportText .= "• " . $task['name'] . "\n";
+        if (isset($report[$user['id']]) && !empty($report[$user['id']])) {
+            foreach ($report[$user['id']] as $taskName) {
+                $reportText .= "• {$taskName}\n";
             }
         } else {
             $reportText .= "Нет задач\n";
